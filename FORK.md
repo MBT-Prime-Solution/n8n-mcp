@@ -15,9 +15,11 @@ community node packages installed on our n8n instances to the node catalog, so
   so upstream's core node docs and community READMEs stay.
 - `package.json`: the extra packages as pinned dependencies, plus the npm script.
 - `data/nodes.db`: upstream's database with the extra rows added.
-- `railway.json`: builds `Dockerfile` (which bundles `data/nodes.db`) with no
-  volume on `/app/data`. Upstream's config uses `Dockerfile.railway` plus a
-  volume, which would hide the bundled database behind a stale or empty volume.
+- `railway.json`: builds `Dockerfile.railway` (it copies `data/`, so the bundled
+  `nodes.db` is used) with no volume on `/app/data`. Upstream's config adds a
+  volume there, which would hide the bundled database behind a stale or empty
+  one. (`Dockerfile` itself does not build on Railway: its `--mount` flags are
+  not supported by Railway's builder.)
 
 Currently added: `n8n-nodes-a2a-protocol@1.1.1`.
 
