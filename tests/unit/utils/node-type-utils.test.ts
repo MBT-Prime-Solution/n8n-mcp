@@ -374,3 +374,17 @@ describe('node-type-utils', () => {
     });
   });
 });
+describe('registerCommunityTriggerTypes (fork addition)', () => {
+  it('treats catalog community triggers without "trigger" in the name as activatable', async () => {
+    const { isTriggerNode, isActivatableTrigger, registerCommunityTriggerTypes } = await import('@/utils/node-type-utils');
+    const type = 'n8n-nodes-a2a-protocol.a2aRemoteAgent';
+
+    expect(isActivatableTrigger('n8n-nodes-example.someOtherServer')).toBe(false);
+
+    registerCommunityTriggerTypes([type]);
+
+    expect(isTriggerNode(type)).toBe(true);
+    expect(isActivatableTrigger(type)).toBe(true);
+    expect(isActivatableTrigger('n8n-nodes-example.someOtherServer')).toBe(false);
+  });
+});

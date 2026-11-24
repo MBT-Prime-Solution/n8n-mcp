@@ -16,6 +16,7 @@ import { migrateWorkflowVersionsInstanceId } from './migrations/add-workflow-ver
 import { TemplateService } from '../templates/template-service';
 import { EnhancedConfigValidator } from '../services/enhanced-config-validator';
 import { logger } from '../utils/logger';
+import { registerCommunityTriggersFrom } from '../utils/node-type-utils';
 
 /**
  * Shared database state - holds the singleton connection and services
@@ -114,6 +115,7 @@ async function initializeSharedDatabase(dbPath: string): Promise<SharedDatabaseS
 
   const repository = new NodeRepository(db);
   repository.pruneExpiredWorkflowVersions();
+  registerCommunityTriggersFrom(repository);
   const templateService = new TemplateService(db);
 
   // Initialize similarity services for enhanced validation

@@ -762,7 +762,18 @@ export class NodeRepository {
   /**
    * Check if a node exists by npm package name
    */
-  hasNodeByNpmPackage(npmPackageName: string): boolean {
+  /**
+   * Node types of community nodes marked as triggers (fork addition).
+   * Used to teach the name-based trigger checks about community triggers.
+   */
+  getCommunityTriggerTypes(): string[] {
+    const rows = this.db.prepare(
+      'SELECT node_type FROM nodes WHERE is_community = 1 AND is_trigger = 1'
+    ).all() as Array<{ node_type: string }>;
+    return rows.map((row) => row.node_type);
+  }
+
+    hasNodeByNpmPackage(npmPackageName: string): boolean {
     const result = this.db.prepare(
       'SELECT 1 FROM nodes WHERE npm_package_name = ? LIMIT 1'
     ).get(npmPackageName) as any;

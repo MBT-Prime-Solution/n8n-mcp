@@ -33,6 +33,7 @@ import { hasText, resolveGetNodeAliases, suggestExecutionsAction, withWorkflowId
 import { installStdioGuard } from '../utils/stdio-guard';
 import { summarizeToolCallArgs } from '../utils/redaction';
 import { NodeRepository } from '../database/node-repository';
+import { registerCommunityTriggersFrom } from '../utils/node-type-utils';
 import { DatabaseAdapter, createDatabaseAdapter } from '../database/database-adapter';
 import { getSharedDatabase, releaseSharedDatabase, SharedDatabaseState } from '../database/shared-database';
 import { PropertyFilter } from '../services/property-filter';
@@ -496,6 +497,7 @@ export class N8NDocumentationMCPServer {
         await this.initializeInMemorySchema();
         logger.debug('In-memory schema initialized');
         this.repository = new NodeRepository(this.db);
+        registerCommunityTriggersFrom(this.repository);
         this.templateService = new TemplateService(this.db);
         // Initialize similarity services for enhanced validation
         EnhancedConfigValidator.initializeSimilarityServices(this.repository);

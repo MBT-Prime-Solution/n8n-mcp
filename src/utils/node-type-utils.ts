@@ -150,6 +150,41 @@ const LEGACY_UNSUFFIXED_TRIGGERS = new Set([
 ]);
 
 /**
+ * Community node types the node catalog marks as triggers (is_trigger = 1).
+ * Community triggers often lack "trigger" in their type name (e.g.
+ * n8n-nodes-a2a-protocol.a2aRemoteAgent), so the name heuristics below miss
+ * them. Filled from the database at startup; see registerCommunityTriggerTypes.
+ * Fork addition (MBT-Prime-Solution).
+ */
+const CATALOG_COMMUNITY_TRIGGERS = new Set<string>();
+
+/**
+ * Register community node types that the catalog knows are triggers, so
+ * isTriggerNode / isActivatableTrigger accept them. Idempotent.
+ */
+export function registerCommunityTriggerTypes(nodeTypes: Iterable<string>): void {
+  for (const nodeType of nodeTypes) {
+    if (nodeType) CATALOG_COMMUNITY_TRIGGERS.add(nodeType);
+  }
+}
+
+/**
+ * Load community trigger types from a node repository. Never throws: a failed
+ * catalog read only means community triggers fall back to the name heuristics.
+ */
+export function registerCommunityTriggersFrom(
+  repository: { getCommunityTriggerTypes?: () => string[] } | null | undefined
+): number {
+  try {
+    const types = repository?.getCommunityTriggerTypes?.() ?? [];
+    registerCommunityTriggerTypes(types);
+    return types.length;
+  } catch {
+    return 0;
+  }
+}
+
+/**
  * Check if a node is ANY type of trigger (including executeWorkflowTrigger)
  *
  * This function determines if a node can start a workflow execution.
@@ -181,6 +216,11 @@ export function isTriggerNode(nodeType: string): boolean {
 
   // Check for polling-based triggers that don't have 'trigger' in their name
   if (lowerType.includes('emailread') || lowerType.includes('emailreadimap')) {
+    return true;
+  }
+
+  // Community triggers known from the node catalog (fork addition)
+  if (CATALOG_COMMUNITY_TRIGGERS.has(nodeType) || CATALOG_COMMUNITY_TRIGGERS.has(normalized)) {
     return true;
   }
 
