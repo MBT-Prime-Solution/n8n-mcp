@@ -5,7 +5,19 @@ export interface LoadedNode {
   packageName: string;
   nodeName: string;
   NodeClass: any;
+  /** Set for nodes from EXTRA_COMMUNITY_PACKAGES (installed community packages) */
+  community?: { npmVersion?: string; authorName?: string; repositoryUrl?: string };
 }
+
+/**
+ * Community node packages installed on our own n8n instances. They are parsed
+ * with full schemas (like the core packages) so search_nodes / get_node /
+ * validation know them. Each must also be a pinned dependency in package.json.
+ * Fork addition (MBT-Prime-Solution) — not in upstream n8n-mcp.
+ */
+export const EXTRA_COMMUNITY_PACKAGES: string[] = [
+  'n8n-nodes-a2a-protocol',
+];
 
 /**
  * Constructible/callable stand-in for a module that cannot be resolved.
@@ -52,6 +64,32 @@ export class N8nNodeLoader {
       }
     }
     
+    return results;
+  }
+
+  /**
+   * Load nodes from EXTRA_COMMUNITY_PACKAGES, tagged with their npm metadata.
+   * Used by scripts/add-extra-community-nodes.ts (fork addition).
+   */
+  async loadExtraCommunityNodes(): Promise<LoadedNode[]> {
+    const results: LoadedNode[] = [];
+
+    for (const pkgName of EXTRA_COMMUNITY_PACKAGES) {
+      try {
+        console.log(`\n📦 Loading community package: ${pkgName}`);
+        const packageJson = require(`${pkgName}/package.json`);
+        const nodes = await this.loadPackageNodes(pkgName, pkgName, packageJson);
+        const author = typeof packageJson.author === 'string' ? packageJson.author : packageJson.author?.name;
+        const repo = typeof packageJson.repository === 'string' ? packageJson.repository : packageJson.repository?.url;
+        for (const node of nodes) {
+          node.community = { npmVersion: packageJson.version, authorName: author, repositoryUrl: repo };
+        }
+        results.push(...nodes);
+      } catch (error) {
+        console.error(`Failed to load community package ${pkgName}:`, error);
+      }
+    }
+
     return results;
   }
 
