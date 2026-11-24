@@ -21,6 +21,13 @@ community node packages installed on our n8n instances to the node catalog, so
   one. (`Dockerfile` itself does not build on Railway: its `--mount` flags are
   not supported by Railway's builder.)
 
+- `Dockerfile.railway`: no `RUN --mount` flags (Railway's builder rejects cache
+  mounts without an id and bind mounts).
+
+Railway (project content-ambition, service `n8n-mcp`) deploys this fork's
+**`main`** branch; it ignores the branch set with `railway service source connect`.
+Push changes to `main`, then `railway service redeploy --service n8n-mcp --from-source --yes`.
+
 Currently added: `n8n-nodes-a2a-protocol@1.1.1`.
 
 ## Adding another package
